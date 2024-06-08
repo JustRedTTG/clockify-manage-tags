@@ -1,6 +1,13 @@
 import api
 import environment
+from helper import calculate_cost
 
+
+def pause():
+    try:
+        input()
+    except KeyboardInterrupt:
+        exit()
 
 
 if environment.user_id is None:
@@ -10,6 +17,7 @@ if environment.user_id is None:
               f"Email: {user['email']}\n"
               f"ID: {user['id']}\n")
     print("Please set your user ID in the environment file.")
+    pause()
     exit()
 
 print("Getting tags...")
@@ -43,6 +51,7 @@ if len(missing_tags) > 0:
         print('No tags found.')
         if len(tags) > 0:
             print('- However archived tags were found.')
+    pause()
     exit()
 else:
     print("Your tags are set correctly!")
@@ -78,14 +87,35 @@ if len(time_entries_with_no_tags) > 0:
     api.add_tag(time_entries_with_no_tags, environment.unpaid_tag_id)
 
     time_entries_with_unpaid_tag.extend(time_entries_with_no_tags)
+    time_entries_with_no_tags.clear()
+
+amount_unpaid = calculate_cost(time_entries_with_unpaid_tag)
+amount_paid = calculate_cost(time_entries_with_paid_tag)
+
+combined_paid = {}
+for currency, amount in amount_unpaid.items():
+    combined_paid[currency] = combined_paid.get(currency, 0) + amount
+for currency, amount in amount_paid.items():
+    combined_paid[currency] = combined_paid.get(currency, 0) + amount
+
+print("Earnings:\n\n",
+      '\n'.join(tuple(
+          f"In {currency}:\n"
+          f"Amount paid: {amount_paid.get(currency, 0):.2f}\n"
+          f"Amount unpaid: {amount_unpaid.get(currency, 0):.2f}\n"
+          f"Combined earnings: {combined_paid.get(currency, 0):.2f} {currency}\n"
+          for currency in combined_paid.keys()
+      )), sep='')
 
 if len(time_entries_with_unpaid_tag) > 0:
-    print("Continue if you were paid {amt} [Enter to continue, Ctrl+C to exit]")
-    input()
+    print(f"Continue if you were paid ",
+          ", ".join(f"{amount:.2f} {currency}" for currency, amount in amount_unpaid.items()),
+          " [Enter to continue, Ctrl+C to exit]", sep='')
+    pause()
 
     print("Setting all unpaid to paid...")
     api.replace_tag(time_entries_with_unpaid_tag, environment.unpaid_tag_id,
                     environment.paid_tag_id)
 
 print("You're all set!")
-input()
+pause()
