@@ -60,7 +60,7 @@ print("Getting time entries...")
 time_entries = api.get_time_entries()
 print(f"Found {len(time_entries)} time entries.")
 
-print("Checking tags...")
+print("Checking time entries...")
 
 time_entries_with_no_tags = []
 time_entries_with_unpaid_tag = []
