@@ -1,6 +1,17 @@
 import api
 import environment
 
+
+
+if environment.user_id is None:
+    print("Getting workspace users...\n")
+    for user in api.get_workspace_users():
+        print(f"User: `{user['name']}`\n"
+              f"Email: {user['email']}\n"
+              f"ID: {user['id']}\n")
+    print("Please set your user ID in the environment file.")
+    exit()
+
 print("Getting tags...")
 tags = api.get_tags()
 

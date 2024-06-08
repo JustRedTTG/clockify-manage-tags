@@ -31,6 +31,13 @@ def get_tags():
     )
 
 
+def get_workspace_users():
+    return send_request_cached(
+        f'https://api.clockify.me/api/workspaces/{workspace_id}/users/',
+        'GET'
+    )
+
+
 def get_time_entries_page(page: int = 1, page_size: int = 50):
     return send_request(
         f'https://api.clockify.me/api/v1/workspaces/{workspace_id}/user/{user_id}/time-entries'
