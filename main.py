@@ -20,7 +20,7 @@ for tag_name in ['paid_tag_id', 'unpaid_tag_id']:
 if len(missing_tags) > 0:
     print(
         f"Notice! Please set your tags in the environment file.\n"
-        f"Missing tags: {', '.join(missing_tags)}\n\n"
+        f"Missing tags: {', '.join(tuple(tag.upper() for tag in missing_tags))}\n\n"
         f"Here are the tags you have:\n")
 
     tag = None
@@ -32,6 +32,7 @@ if len(missing_tags) > 0:
         print('No tags found.')
         if len(tags) > 0:
             print('- However archived tags were found.')
+    exit()
 else:
     print("Your tags are set correctly!")
 
