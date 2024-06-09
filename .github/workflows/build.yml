@@ -1,0 +1,88 @@
+name: Executable Build
+
+on:
+  push:
+    branches: [ "main", "nuitka-testing" ]
+    paths:
+      - '*.py'
+
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          lfs: 'true'
+          submodules: 'recursive'
+          ssh-key: ${{ secrets.SSH_KEY }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+
+      - name: Build Executable with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          company-name: "RedTTG"
+          product-name: "Clokify Manage tags"
+          product-version: "1.0"
+          script-name: main.py
+          standalone: true
+          onefile: true
+          deployment: false
+          disable-console: false
+#          windows-icon-from-ico: icon.ico
+
+      - name: Move files
+        run: |
+          mkdir -p zipped
+          mv build/main.exe zipped/main.exe
+        shell: bash
+
+      - name: Zip dist
+        run: |
+          python -c "import zipfile,shutil; shutil.make_archive('dist-unsigned', 'zip', 'build/main.dist')"
+          
+
+      - name: Zip onefile
+        run: |
+          python -c "import zipfile,shutil; shutil.make_archive('onefile-unsigned', 'zip', 'zipped')"
+
+      - name: Update release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            build/*.bin
+            zipped/main.exe
+            build/*.app/**/*
+            dist-unsigned.zip
+            onefile-unsigned.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ runner.os }}-latest
+          name: ${{ runner.os }} Build
+          body: Automatic build for ${{ runner.os }}
+          prerelease: true
+          allowUpdates: true
