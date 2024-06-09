@@ -5,6 +5,7 @@ on:
     branches: [ "main", "nuitka-testing" ]
     paths:
       - '*.py'
+      - '.github/workflows/build.yml'
 
 
 jobs:
